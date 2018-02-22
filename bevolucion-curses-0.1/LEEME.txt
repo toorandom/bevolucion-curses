@@ -1,0 +1,143 @@
+
+/*
+ * Copyright Nov-2013 Eduardo Ruiz Duarte (rduarte@ciencias.unam.mx)
+ *
+ *
+ * Programa para calcular las generaciones requeridas para alcanzar la estructura de un gen definida
+ * utilizando la estructura aproximada biologica de un organismo.
+ *
+ * Si quieres aprender un poco de genetica basica fundamental, sigue leyendo y corre este programa
+ * 
+ * Si quieres aprender mas de la parte biologica, quien me asesoro fue Ximena Tochtli Bouchain, escribele a rhapanus@gmail.com
+ *
+ * Si quieres saber como funciona el API , lee los prototipos y sus comentarios al final del header bevolucion.h
+ *
+ * Si estas desesperado y te da flojera leer esto , solo compila y corre el programa que ya trae un DEMO 
+ * 
+ * ./compila
+ * ./bevolucion
+ * 
+ *
+ * en el ejemplo se intenta evolucionar a un gen_elite aleatorio.
+ *
+ *
+ *
+ * COMO FUNCIONA?
+ *
+ * Se puede definir.
+ * numero de organismos
+ * numero de cromosomas
+ * numero de genes 
+ * numero de pares de bases nitrogenadas por gen
+ * coeficiente de mutacion (cuantos pares de bases se van a modificar aleatoriamente en todos los genes... podrian no modificarse algunos genes por probabilidad)
+ * cromosoma y gen de referencia para analizar su evolucion
+ *
+ * QUE HAY EN EL DEMO? [ main() ]
+ *
+ * En el main() se implementa:
+ *  
+ *  INICIO_ALGORITMO { 
+ *
+ * 1. El programa genera una poblacion con genes aleatorios y un gen_elite para comparar la evolucion, cada organismo contiene en su 'ser' 
+ *   su coeficiente de adaptacion con respecto al gen_elite
+ *
+ *   LOOP() { 
+ * 2. Se organizan jerarquicamente en funcion de su adaptacion al gen_elite 
+ *
+ * 3. Usando la distribucion aleatoria uniforme escogemos aleatoriamente 2 padres aptos para reproducirse (de acuerdo a su coeficiente de adaptacion)
+ *   podrian no ser los mas aptos, pero la funcion esta probada para arrojar mayormente aptos al azar.
+ *   para simular elitismo usual entre organismos.
+ *
+ * 4. Se reproducen y generan un hijo con cierta probabilidad de mutacion y se le integra en su 'ser' su coeficiente de adaptacion
+ *   el ADN de el hijo contiene genes con 50% de probabilidad del padre y 50% de probabilidad de la madre
+ *
+ * 5. Se integra a la poblacion si este hijo es mas apto que el menos apto
+ *
+ * 6. Muere el menos apto
+ *
+ * 7. Envejece 1/3 de la poblacion menos adaptada de manera que se dania el ADN,  el danio es una mutacion
+ *   de solo 1 par de bases nitrogenadas en el gen de referencia.
+ *   Esto esta fundamentado en que el envejecimiento consiste en la creacion de proteinas menos adecuadas
+ *   para el ciclo de vida de las celulas debido a que el ADN contiene ya informacion erronea
+ *   (el ADN contiene las 'instrucciones' del ciclo de vida de una celula, creacion de proteinas)
+ *   Por ejemplo los rayos UV danian el gen XPD humano que llevan a defectos en la reparacion del ADN y transcripccion.
+ *   las personas con este danio tienen el sindrome de Cockayne, por eso aqui modelamos con 1/3 de los menos 
+ *   adaptados la mutacion en el gen de referencia.
+ *
+ *  } 
+ * }
+ * FIN_ALGORITMO
+ *
+ *
+ * Cada organismo (celula) esta organizada asi:
+ *
+ * typedef struct celula_s
+ * {
+ *   cromosoma cromosomas[MAX_CROMOSOMAS];
+ *   int16_t num_cromo;
+ *   int16_t num_genes;
+ *   int32_t aptitud_gen_ref;
+ *   uint64_t identidad;
+ *   uint32_t padre, madre;
+ *   int32_t num_hijos;
+ *   int32_t hijos[MAX_HIJOS];
+ *  } celula;
+ *
+ * donde su 'identidad' esta compuesta de 64 bits
+ * {20 bits info de padre}{20 bits info de madre}{4 bits pseudo-random}{20 bits (Padre XOR Madre) + num_hijos_padre+num_hijos_madre}
+ *
+ *
+ * Las variables globales gGen_ref y gCromo_ref son para encontrar el gen de referencia para evolucionar, esta definida en main() y se genera aleatoriamente ej. (ATCGGCTA)
+ *
+ *
+ * Todas las subestructuras estan organizadas jerarquicamente con los componentes biologicos del organismo simple (solo nucleo)
+ *
+ *
+ * CROMOSOMA:
+ * Un cromosoma tiene el ADN enrollado y tiene asociadas proteinas, especialmente histonas, aqui las podemos relacionar con el mismo indice 
+ * pero la estructura de proteinas que el cuerpo usa para unir el ADN como cromatina no se usa aun en esta implementacion aun (ni otras proteinas)
+ *
+ * typedef struct cromosoma_s
+ * {
+ * adn molecula_adn;
+ * uint64_t proteinas[MAX_GENES * MAX_NUC_GEN];
+ * } cromosoma;
+ *
+ * ADN:
+ * El ADN esta seccionado por genes 
+ * typedef struct adn_s
+ * {
+ * gen genes[MAX_GENES];
+ * int8_t recesivo;
+ * } adn;
+ *
+ * GEN:
+ * Un Gen esta compuesto de bases nitrogenadas, y guardaremos su aptitud y tamanio de pares de bases nitrogenadas en format AT,TA,GC,CG,AU,UA
+ * que son los pares complementarios de pirimidinas y purinas en el ADN de un organismo y en ARN (U:=Uracilo que sustituye T=Timina)
+ *
+ * typedef struct gen_s
+ * {
+ *   uint8_t par_bases[MAX_NUC_GEN];
+ *   uint16_t tamano;
+ *   uint32_t aptitud;
+ * } gen;
+ *
+ *
+ * PAR DE BASES NITROGENADAS
+ *
+ * #define Adenina     0x08
+ * #define Citosina    0x04
+ * #define Guanina     0x02
+ * #define Timina      0x01
+ * #define Uracilo     0x0f
+ *  ADN pares complementarios 
+ * #define AT (int8_t)(Adenina<<4)|Timina
+ * #define TA (int8_t)(Timina<<4) |Adenina
+ * #define GC (int8_t)(Guanina<<4)|Citosina
+ * #define CG (int8_t)(Citosina<<4)|Guanina
+ *  ARN pares complementarios 
+ * #define AU (int8_t)(Adenina<<4)|Uracilo
+ * #define UA (int8_t)(Uracilo<<4)|Adenina
+ * 
+ */
+

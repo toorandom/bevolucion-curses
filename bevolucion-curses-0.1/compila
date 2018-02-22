@@ -1,0 +1,17 @@
+#!/bin/bash
+cd codigo
+for each in $(ls *.c)
+do
+echo "gcc -c -O3 -funroll-loops -fomit-frame-pointer -Wall -pedantic -Wno-format -Wno-unused-variable $each "
+gcc -c -O3 -funroll-loops -fomit-frame-pointer -Wall -Wno-format -Wno-unused-variable $each
+done
+
+echo Linkeando ...
+
+echo "gcc -o bevolucion *.o"
+gcc -lncurses -o bevolucion *.o
+
+cp bevolucion ../
+
+echo "Listo, puedes correr el programa ./bevolucion, pero te recomiendo leer primero LEEME.txt, leer el main.c  y los comentarios en los prototipos al final del archivo bevolucion.h"
+echo "Eduardo Ruiz Duarte (rduarte@ciencias.unam.mx)"
